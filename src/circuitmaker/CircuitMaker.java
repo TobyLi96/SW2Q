@@ -74,7 +74,6 @@ public class CircuitMaker extends Application {
                 if (i == 5 && j == 5) {
                     cell.setStyle("-fx-background-color: #ffff4d;");
                 }
-                
                 grid.add(cell, i, j);
             }
         }
