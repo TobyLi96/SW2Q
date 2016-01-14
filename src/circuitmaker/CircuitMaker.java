@@ -42,7 +42,7 @@ import javafx.stage.Stage;
  */
 public class CircuitMaker extends Application {
 
-    ImageView tempIV = new ImageView();
+    HBox tempIV = new HBox();
     
     @Override
     public void start(Stage primaryStage) {
@@ -150,16 +150,14 @@ public class CircuitMaker extends Application {
         primaryStage.show();
     }
     
-    void setupDelete(ImageView currentImage){
+    void setupDelete(HBox currentImage){
         currentImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
 
            @Override
            public void handle(MouseEvent event) {
                if (event.getButton() == MouseButton.SECONDARY) {
-                    currentImage.setImage(null);
+                    currentImage.getChildren().clear();
                 }
-               
-            
            }
        });
     }
@@ -178,6 +176,35 @@ public class CircuitMaker extends Application {
                ClipboardContent content = new ClipboardContent();
                 
                Image sourceImage = source.getImage();
+               content.putImage(sourceImage);
+               db.setContent(content);
+               event.consume();
+           }
+       });
+        
+        source.setOnMouseEntered(new EventHandler <MouseEvent>() {
+            @Override
+            public void handle(MouseEvent e) {
+                source.setCursor(Cursor.HAND);
+            }
+        });
+    }
+    
+    void setupGestureSource(final HBox source, TransferMode mode) {
+         
+        source.setOnDragDetected(new EventHandler <MouseEvent>() {
+
+           @Override
+           public void handle(MouseEvent event) {
+
+               /* allow any transfer mode */
+               Dragboard db = source.startDragAndDrop(mode);
+                
+               /* put a image on dragboard */
+               ClipboardContent content = new ClipboardContent();
+                
+               ImageView imv  = (ImageView)source.getChildren().get(0);
+               Image sourceImage = imv.getImage();
                content.putImage(sourceImage);
                db.setContent(content);
                if (mode == TransferMode.MOVE) {
@@ -246,17 +273,20 @@ public class CircuitMaker extends Application {
                 Dragboard db = event.getDragboard();
                 boolean success = false;
                 if (db.hasImage()) {
-                    target.getChildren().clear();
-                    ImageView iv = new ImageView();
-                    target.getChildren().add(iv);
-                    iv.setImage(db.getImage());
-                    iv.setFitHeight(40);
-                    iv.setFitWidth(40);
-                    tempIV.setImage(null);
-                    setupGestureSource(iv, TransferMode.MOVE);
-                    setupDelete(iv);
-       
-                    success = true;
+                    if (target.getChildren().isEmpty()) {
+                        target.getChildren().clear();
+                        ImageView iv = new ImageView();
+                        target.getChildren().add(iv);
+                        iv.setImage(db.getImage());
+                        iv.setFitHeight(40);
+                        iv.setFitWidth(40);
+                        setupGestureSource(target, TransferMode.MOVE);
+                        setupDelete(target);
+                        success = true;
+                    }
+                }
+                if (success == true) {
+                    tempIV.getChildren().clear();
                 }
                 /* let the source know whether the string was successfully 
                  * transferred and used */
