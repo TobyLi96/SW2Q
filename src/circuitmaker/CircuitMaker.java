@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package circuitmaker;
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -18,6 +19,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelReader;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -44,7 +46,7 @@ import javafx.stage.Stage;
  */
 public class CircuitMaker extends Application {
     HBox tempIV = new HBox();
-    double x1=0,x2=0,y1=0,y2=0;
+    double x1 = 0,x2 = 0,y1 = 0,y2 = 0;
     GraphicsContext gc;
     
     @Override
@@ -66,7 +68,7 @@ public class CircuitMaker extends Application {
         grid.setStyle("-fx-background-color: transparent;");
         stack.getChildren().addAll(wirePane, grid);
         
-        grid.setGridLinesVisible(true);
+//        grid.setGridLinesVisible(true);
         
         HBox title = new HBox();
         title.setPrefSize(800, 100);
@@ -149,7 +151,15 @@ public class CircuitMaker extends Application {
         projects.setPrefSize(800, 150);
         projects.setStyle("-fx-background-color: #99ccff;");
         
-        
+        Button deleteWire = new Button();
+        deleteWire.setText("DELETE WIRE");
+        deleteWire.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                gc.clearRect(0, 0, 400, 400);
+            }
+        }); 
+        projects.getChildren().add(deleteWire);
         
         Text titleText = new Text("Circuit Maker");
         titleText.setTextOrigin(VPos.TOP);
@@ -179,32 +189,59 @@ public class CircuitMaker extends Application {
         primaryStage.show();
     }
     
-    void setupDelete(HBox currentImage){
+    void setupComponent(HBox currentImage){
         currentImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
-           @Override
-           public void handle(MouseEvent event) {
-               if (event.getButton() == MouseButton.SECONDARY) {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getButton() == MouseButton.SECONDARY) {
                     currentImage.getChildren().clear();
                 }
+                else {
+                    ImageView switchImage = (ImageView)currentImage.getChildren().get(0);
+                    System.out.println("mouse clicked");
+                    if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
+                        System.out.println("closed");
+                        switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")));
+                        currentImage.getChildren().clear();
+                        currentImage.getChildren().add(switchImage);
+                    }
+                    else if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
+                        System.out.println("open");
+                        switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
+                        currentImage.getChildren().clear();
+                        currentImage.getChildren().add(switchImage);
+                    }
+               }
            }
        });
+    }
+    
+    boolean imageEqual(Image image1, Image image2) {
+        PixelReader pr1 = image1.getPixelReader();
+        PixelReader pr2 = image2.getPixelReader();
+        boolean isEqual = true;
+        for (int i = 0; i < 40; i++) {
+            for (int j = 0; j < 40; j++) {
+                if (pr1.getArgb(i, j) != pr2.getArgb(i, j)) {
+                    isEqual = false;
+                }
+            }
+        }
+        return isEqual;
     }
     
     void setupSwitch(ImageView switchImage) {
         switchImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
             public void handle(MouseEvent event) {
                 System.out.println("mouse clicked");
- //               ImageView currentImage = (ImageView)switchImage.getChildren().get(0);
-                if (switchImage.getImage().equals(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
-                    System.out.println("closed switch");
-                    switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
-                }
-                else if (switchImage.getImage().equals(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
-                    System.out.println("open switch");
+                if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
+                    System.out.println("closed");
                     switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")));
                 }
- //               switchImage.getChildren().clear();
- //               switchImage.getChildren().add(currentImage);
+                else if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
+                    System.out.println("open");
+                    switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
+                }
                 event.consume();
              } 
         });
@@ -214,48 +251,45 @@ public class CircuitMaker extends Application {
         Line line = new Line();
         wirePane.setOnMousePressed(new EventHandler<MouseEvent>() {
             public void handle(final MouseEvent event) {
-  
-                //get x and y of first node
-                    //x1 = ((Ellipse) event.getTarget()).getCenterX();
-                    x1=event.getX();
-                    y1=event.getY();
-                    //y1 = ((Ellipse) event.getTarget()).getCenterY();
-                    System.out.println("the first postition" + x1 + y1);
-                    event.consume();
-           
+                x1 = event.getX();
+                y1 = event.getY();
+                x1 = ((int)x1 / 40) * 40 + 20;
+                y1 = ((int)y1 / 40) * 40 + 20;
+                
+                //y1 = ((Ellipse) event.getTarget()).getCenterY();
+                System.out.println("the first postition" + x1 + y1);
+                event.consume();           
             }
         });
         wirePane.setOnMouseReleased(new EventHandler<MouseEvent>() {
             public void handle(final MouseEvent event) {
-                x2=event.getX();
-                y2=event.getY();
-                //x2 = ((Ellipse) event.getTarget()).getCenterX();
-                //y2 = ((Ellipse) event.getTarget()).getCenterY();
+                x2 = event.getX();
+                y2 = event.getY();
+                x2 = ((int)x2 / 40) * 40 + 20;
+                y2 = ((int)y2 / 40) * 40 + 20;
                 System.out.println("the second postition" + x2 + y2); 
                 
-                if(x2>=(x1-20.0) && x2<=(x1+20.0)){
+                if(x2 >= (x1 - 20.0) && x2 <= (x1 + 20.0)){
                     gc.setStroke(Color.BLACK);
                     gc.setLineWidth(2);
                     gc.strokeLine(x1, y1, x2, y2);
                     System.out.println("1");
                 }
                 
-                if(y2>=(y1-20.0) && y2<=(y1+20.0)){
+                if(y2 >= (y1 - 20.0) && y2 <= (y1 + 20.0)){
                     gc.setStroke(Color.BLACK);
                     gc.setLineWidth(2);
                     gc.strokeLine(x1, y1, x2, y2);
-                    System.out.println("2");
                 }
                 
-                if(x2>(x1+20.0)&&y2<(y1-20.0)){
+                if(x2 > (x1 + 20.0) && y2 < (y1 - 20.0)){
                     gc.setStroke(Color.BLACK);
                     gc.setLineWidth(2);
                     gc.strokeLine(x1, y1, x1, y2);
                     gc.strokeLine(x1, y2, x2, y2);
-                    System.out.println("3");
                 }
                 
-                 if(x2>(x1+20.0)&&y2>(y1+20.0)){
+                 if(x2 > (x1 + 20.0) && y2 > (y1 + 20.0)){
                     gc.setStroke(Color.BLACK);
                     gc.setLineWidth(2);
                     gc.strokeLine(x1, y1, x2, y1);
@@ -263,7 +297,7 @@ public class CircuitMaker extends Application {
                     System.out.println("4");
                 }
                  
-                 if(x2<(x1-20.0)&&y2>(y1+20.0)){
+                 if(x2 < (x1 - 20.0) && y2 > (y1 + 20.0)){
                     gc.setStroke(Color.BLACK);
                     gc.setLineWidth(2);
                     gc.strokeLine(x1, y1, x1, y2);
@@ -271,26 +305,18 @@ public class CircuitMaker extends Application {
                     System.out.println("5");
                 }
                  
-                 if(x2<(x1-20.0)&&y2<(y1-20.0)){
+                 if(x2 < (x1 - 20.0) && y2 < (y1 - 20.0)){
                     gc.setStroke(Color.BLACK);
                     gc.setLineWidth(2);
                     gc.strokeLine(x1, y1, x2, y1);
                     gc.strokeLine(x2, y1, x2, y2);
                     System.out.println("6");
                 }
-                    
-//                line.setStartX(x1);
-//                line.setStartY(y1);
-//                line.setEndX(x2);
-//                line.setEndY(y2);
-//                wirePane.getChildren().add(line);
                 stack.getChildren().clear();
                 stack.getChildren().addAll(wirePane, grid);
                 wirePane.setOnMousePressed(null);
                 wirePane.setOnMouseReleased(null);
                 event.consume();
-                
-                
             }
         });
         
@@ -301,19 +327,17 @@ public class CircuitMaker extends Application {
          
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
            @Override
-           public void handle(MouseEvent event) {
-               /* allow any transfer mode */
-               Dragboard db = source.startDragAndDrop(TransferMode.COPY);
+            public void handle(MouseEvent event) {
+                Dragboard db = source.startDragAndDrop(TransferMode.COPY);
                 
-               /* put a image on dragboard */
-               ClipboardContent content = new ClipboardContent();
+                ClipboardContent content = new ClipboardContent();
                 
-               Image sourceImage = source.getImage();
-               content.putImage(sourceImage);
-               db.setContent(content);
-               event.consume();
-           }
-       });
+                Image sourceImage = source.getImage();
+                content.putImage(sourceImage);
+                db.setContent(content);
+                event.consume();
+            }
+        });
         
         source.setOnMouseEntered(new EventHandler <MouseEvent>() {
             @Override
@@ -328,10 +352,8 @@ public class CircuitMaker extends Application {
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
            @Override
            public void handle(MouseEvent event) {
-               /* allow any transfer mode */
                Dragboard db = source.startDragAndDrop(TransferMode.MOVE);
                 
-               /* put a image on dragboard */
                ClipboardContent content = new ClipboardContent();
                 
                ImageView imv  = (ImageView)source.getChildren().get(0);
@@ -348,21 +370,15 @@ public class CircuitMaker extends Application {
                 source.setCursor(Cursor.HAND);
             }
         });
-        
-        
     }
     
     void setupGestureTarget(final HBox target) {
         
         target.setOnDragOver(new EventHandler <DragEvent>() {
             public void handle(DragEvent event) {
-                /* data is dragged over the target */
                 System.out.println("onDragOver");
-                /* accept it only if it is  not dragged from the same node 
-                 * and if it has a string data */
                 if (event.getGestureSource() != target &&
                         event.getDragboard().hasImage()) {
-                    /* allow for both copying and moving, whatever user chooses */
                     event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 }
                 
@@ -371,9 +387,7 @@ public class CircuitMaker extends Application {
         });
         target.setOnDragEntered(new EventHandler <DragEvent>() {
             public void handle(DragEvent event) {
-                /* the drag-and-drop gesture entered the target */
                 System.out.println("onDragEntered");
-                /* show to the user that it is an actual gesture target */
                 if (event.getGestureSource() != target &&
                         event.getDragboard().hasImage()) {
                     target.setStyle("-fx-background-color: #ffff4d;");
@@ -384,8 +398,6 @@ public class CircuitMaker extends Application {
         });
         target.setOnDragExited(new EventHandler <DragEvent>() {
             public void handle(DragEvent event) {
-                /* mouse moved away, remove the graphical cues */
-//                target.setImage(new Image("ress/logo-ballon.jpg"));
                 target.setStyle("-fx-background-color: transparent;");
                 event.consume();
             }
@@ -393,9 +405,7 @@ public class CircuitMaker extends Application {
         
         target.setOnDragDropped(new EventHandler <DragEvent>() {
             public void handle(DragEvent event) {
-                /* data dropped */
                 System.out.println("onDragDropped");
-                /* if there is a string data on dragboard, read it and use it */
                 Dragboard db = event.getDragboard();
                 boolean success = false;
                 if (db.hasImage()) {
@@ -407,8 +417,7 @@ public class CircuitMaker extends Application {
                         iv.setFitHeight(40);
                         iv.setFitWidth(40);
                         setupGestureSource(target);
-                        setupDelete(target);
-//                        setupSwitch(iv);
+                        setupComponent(target);
                         success = true;
                     }
                 }
