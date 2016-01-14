@@ -20,6 +20,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -148,6 +149,20 @@ public class CircuitMaker extends Application {
         primaryStage.sizeToScene();
         primaryStage.show();
     }
+    
+    void setupDelete(ImageView currentImage){
+        currentImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
+
+           @Override
+           public void handle(MouseEvent event) {
+               if (event.getButton() == MouseButton.SECONDARY) {
+                    currentImage.setImage(null);
+                }
+               
+            
+           }
+       });
+    }
 
     void setupGestureSource(final ImageView source, TransferMode mode) {
          
@@ -178,6 +193,8 @@ public class CircuitMaker extends Application {
                 source.setCursor(Cursor.HAND);
             }
         });
+        
+        
     }
     
     void setupGestureTarget(final HBox target) {
@@ -234,9 +251,11 @@ public class CircuitMaker extends Application {
                     target.getChildren().add(iv);
                     iv.setImage(db.getImage());
                     iv.setFitHeight(40);
-                    iv.setFitWidth(40); 
+                    iv.setFitWidth(40);
                     tempIV.setImage(null);
                     setupGestureSource(iv, TransferMode.MOVE);
+                    setupDelete(iv);
+       
                     success = true;
                 }
                 /* let the source know whether the string was successfully 
