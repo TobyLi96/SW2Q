@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package circuitmaker;
-
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -14,6 +13,8 @@ import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -26,23 +27,25 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
 /**
  *
  * @author litao_000
  */
 public class CircuitMaker extends Application {
-
     HBox tempIV = new HBox();
+    double x1=0,x2=0,y1=0,y2=0;
+    GraphicsContext gc;
     
     @Override
     public void start(Stage primaryStage) {
@@ -53,8 +56,17 @@ public class CircuitMaker extends Application {
         root.setPadding(new Insets(5));
         scene.setFill(Color.WHITE);
         
+        StackPane stack = new StackPane();
+        stack.setPrefSize(400, 400);
         GridPane grid = new GridPane();
-//        grid.setGridLinesVisible(true);
+        Canvas wirePane = new Canvas();
+        gc = wirePane.getGraphicsContext2D();
+        wirePane.setHeight(400);
+        wirePane.setWidth(400);
+        grid.setStyle("-fx-background-color: transparent;");
+        stack.getChildren().addAll(wirePane, grid);
+        
+        grid.setGridLinesVisible(true);
         
         HBox title = new HBox();
         title.setPrefSize(800, 100);
@@ -71,50 +83,64 @@ public class CircuitMaker extends Application {
         battery.setFitHeight(40);
         battery.setFitWidth(40); 
         battery.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/Cell.png")));
-        setupGestureSource(battery, TransferMode.COPY);
+        setupGestureSource(battery);
         components.getChildren().add(battery);
         
         final ImageView cSwitch = new ImageView();
         cSwitch.setFitHeight(40);
         cSwitch.setFitWidth(40); 
         cSwitch.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
-        setupGestureSource(cSwitch, TransferMode.COPY);
+        setupGestureSource(cSwitch);
         components.getChildren().add(cSwitch);
         
         final ImageView oSwitch = new ImageView();
         oSwitch.setFitHeight(40);
         oSwitch.setFitWidth(40); 
         oSwitch.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")));
-        setupGestureSource(oSwitch, TransferMode.COPY);
+        setupGestureSource(oSwitch);
         components.getChildren().add(oSwitch);
         
         final ImageView led = new ImageView();
         led.setFitHeight(40);
         led.setFitWidth(40); 
         led.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/LED.png")));
-        setupGestureSource(led, TransferMode.COPY);
+        setupGestureSource(led);
         components.getChildren().add(led);
         
         final ImageView resistor = new ImageView();
         resistor.setFitHeight(40);
         resistor.setFitWidth(40); 
         resistor.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/Resistor.png")));
-        setupGestureSource(resistor, TransferMode.COPY);
+        setupGestureSource(resistor);
         components.getChildren().add(resistor);
         
         final ImageView ammeter = new ImageView();
         ammeter.setFitHeight(40);
         ammeter.setFitWidth(40); 
         ammeter.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/Ammeter.png")));
-        setupGestureSource(ammeter, TransferMode.COPY);
+        setupGestureSource(ammeter);
         components.getChildren().add(ammeter);
         
         final ImageView voltmeter = new ImageView();
         voltmeter.setFitHeight(40);
         voltmeter.setFitWidth(40); 
         voltmeter.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/Voltmeter.png")));
-        setupGestureSource(voltmeter, TransferMode.COPY);
+        setupGestureSource(voltmeter);
         components.getChildren().add(voltmeter);
+        
+        Button btn = new Button();
+        btn.setText("ADD WIRE");
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                stack.getChildren().clear();
+                stack.getChildren().addAll(grid, wirePane);
+                drawLine(wirePane, stack, grid);
+                event.consume();
+            }
+        }); 
+        
+        components.getChildren().add(btn);
         
         VBox data = new VBox();
         data.setPrefSize(200, 400);
@@ -122,6 +148,8 @@ public class CircuitMaker extends Application {
         HBox projects = new HBox();
         projects.setPrefSize(800, 150);
         projects.setStyle("-fx-background-color: #99ccff;");
+        
+        
         
         Text titleText = new Text("Circuit Maker");
         titleText.setTextOrigin(VPos.TOP);
@@ -133,12 +161,13 @@ public class CircuitMaker extends Application {
             for (int j = 0; j < 10; j++) {
                 HBox cell = new HBox();
                 cell.setPrefSize(40, 40);
+                cell.setStyle("-fx-background-color: transparent;");
                 setupGestureTarget(cell);
                 grid.add(cell, i, j);
             }
         }
         
-        root.setCenter(grid);
+        root.setCenter(stack);
         root.setTop(title);
         root.setBottom(projects);
         root.setLeft(components);
@@ -152,7 +181,6 @@ public class CircuitMaker extends Application {
     
     void setupDelete(HBox currentImage){
         currentImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
-
            @Override
            public void handle(MouseEvent event) {
                if (event.getButton() == MouseButton.SECONDARY) {
@@ -161,16 +189,121 @@ public class CircuitMaker extends Application {
            }
        });
     }
-
-    void setupGestureSource(final ImageView source, TransferMode mode) {
+    
+    void setupSwitch(ImageView switchImage) {
+        switchImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
+            public void handle(MouseEvent event) {
+                System.out.println("mouse clicked");
+ //               ImageView currentImage = (ImageView)switchImage.getChildren().get(0);
+                if (switchImage.getImage().equals(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
+                    System.out.println("closed switch");
+                    switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
+                }
+                else if (switchImage.getImage().equals(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
+                    System.out.println("open switch");
+                    switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")));
+                }
+ //               switchImage.getChildren().clear();
+ //               switchImage.getChildren().add(currentImage);
+                event.consume();
+             } 
+        });
+    }
+    
+    void drawLine(Canvas wirePane, StackPane stack, GridPane grid) {
+        Line line = new Line();
+        wirePane.setOnMousePressed(new EventHandler<MouseEvent>() {
+            public void handle(final MouseEvent event) {
+  
+                //get x and y of first node
+                    //x1 = ((Ellipse) event.getTarget()).getCenterX();
+                    x1=event.getX();
+                    y1=event.getY();
+                    //y1 = ((Ellipse) event.getTarget()).getCenterY();
+                    System.out.println("the first postition" + x1 + y1);
+                    event.consume();
+           
+            }
+        });
+        wirePane.setOnMouseReleased(new EventHandler<MouseEvent>() {
+            public void handle(final MouseEvent event) {
+                x2=event.getX();
+                y2=event.getY();
+                //x2 = ((Ellipse) event.getTarget()).getCenterX();
+                //y2 = ((Ellipse) event.getTarget()).getCenterY();
+                System.out.println("the second postition" + x2 + y2); 
+                
+                if(x2>=(x1-20.0) && x2<=(x1+20.0)){
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(2);
+                    gc.strokeLine(x1, y1, x2, y2);
+                    System.out.println("1");
+                }
+                
+                if(y2>=(y1-20.0) && y2<=(y1+20.0)){
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(2);
+                    gc.strokeLine(x1, y1, x2, y2);
+                    System.out.println("2");
+                }
+                
+                if(x2>(x1+20.0)&&y2<(y1-20.0)){
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(2);
+                    gc.strokeLine(x1, y1, x1, y2);
+                    gc.strokeLine(x1, y2, x2, y2);
+                    System.out.println("3");
+                }
+                
+                 if(x2>(x1+20.0)&&y2>(y1+20.0)){
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(2);
+                    gc.strokeLine(x1, y1, x2, y1);
+                    gc.strokeLine(x2, y1, x2, y2);
+                    System.out.println("4");
+                }
+                 
+                 if(x2<(x1-20.0)&&y2>(y1+20.0)){
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(2);
+                    gc.strokeLine(x1, y1, x1, y2);
+                    gc.strokeLine(x1, y2, x2, y2);
+                    System.out.println("5");
+                }
+                 
+                 if(x2<(x1-20.0)&&y2<(y1-20.0)){
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(2);
+                    gc.strokeLine(x1, y1, x2, y1);
+                    gc.strokeLine(x2, y1, x2, y2);
+                    System.out.println("6");
+                }
+                    
+//                line.setStartX(x1);
+//                line.setStartY(y1);
+//                line.setEndX(x2);
+//                line.setEndY(y2);
+//                wirePane.getChildren().add(line);
+                stack.getChildren().clear();
+                stack.getChildren().addAll(wirePane, grid);
+                wirePane.setOnMousePressed(null);
+                wirePane.setOnMouseReleased(null);
+                event.consume();
+                
+                
+            }
+        });
+        
+       
+    }
+    
+    void setupGestureSource(final ImageView source) {
          
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
-
            @Override
            public void handle(MouseEvent event) {
-
                /* allow any transfer mode */
-               Dragboard db = source.startDragAndDrop(mode);
+               Dragboard db = source.startDragAndDrop(TransferMode.COPY);
                 
                /* put a image on dragboard */
                ClipboardContent content = new ClipboardContent();
@@ -190,26 +323,21 @@ public class CircuitMaker extends Application {
         });
     }
     
-    void setupGestureSource(final HBox source, TransferMode mode) {
+    void setupGestureSource(final HBox source) {
          
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
-
            @Override
            public void handle(MouseEvent event) {
-
                /* allow any transfer mode */
-               Dragboard db = source.startDragAndDrop(mode);
+               Dragboard db = source.startDragAndDrop(TransferMode.MOVE);
                 
                /* put a image on dragboard */
                ClipboardContent content = new ClipboardContent();
                 
                ImageView imv  = (ImageView)source.getChildren().get(0);
-               Image sourceImage = imv.getImage();
-               content.putImage(sourceImage);
+               content.putImage(imv.getImage());
                db.setContent(content);
-               if (mode == TransferMode.MOVE) {
-                   tempIV = source;
-               }
+               tempIV = source;
                event.consume();
            }
        });
@@ -241,7 +369,6 @@ public class CircuitMaker extends Application {
                 event.consume();
             }
         });
-
         target.setOnDragEntered(new EventHandler <DragEvent>() {
             public void handle(DragEvent event) {
                 /* the drag-and-drop gesture entered the target */
@@ -255,12 +382,11 @@ public class CircuitMaker extends Application {
                 event.consume();
             }
         });
-
         target.setOnDragExited(new EventHandler <DragEvent>() {
             public void handle(DragEvent event) {
                 /* mouse moved away, remove the graphical cues */
 //                target.setImage(new Image("ress/logo-ballon.jpg"));
-                target.setStyle("-fx-background-color: #ffffff;");
+                target.setStyle("-fx-background-color: transparent;");
                 event.consume();
             }
         });
@@ -280,13 +406,17 @@ public class CircuitMaker extends Application {
                         iv.setImage(db.getImage());
                         iv.setFitHeight(40);
                         iv.setFitWidth(40);
-                        setupGestureSource(target, TransferMode.MOVE);
+                        setupGestureSource(target);
                         setupDelete(target);
+//                        setupSwitch(iv);
                         success = true;
                     }
                 }
                 if (success == true) {
                     tempIV.getChildren().clear();
+                }
+                else {
+                    tempIV = new HBox();
                 }
                 /* let the source know whether the string was successfully 
                  * transferred and used */
