@@ -9,11 +9,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
  
-/**
- * Model class for a Person.
- *
- * @author Marco Jakob
- */
+
 public class Component {
  
     private final StringProperty component;
@@ -21,17 +17,10 @@ public class Component {
     private final IntegerProperty xcoor;
     private final IntegerProperty ycoor;
    
-    /**
-     * Default constructor.
-     */
     public Component() {
         this(null, 0, 0);
     }
  
-    /**
-     * Constructor with some initial data.
-     *
-     */
     public Component(String component, int xcoor, int ycoor) {
         this.component = new SimpleStringProperty(component);
         this.xcoor = new SimpleIntegerProperty(xcoor);

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package circuitmaker;
 
 import java.io.File;
@@ -14,10 +9,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
-/**
- *
- * @author litao_000
- */
 public class ProjectController {
     private CircuitMaker circuitMaker;
     
@@ -76,10 +67,6 @@ public class ProjectController {
         }
     }
  
-    /**
-     * Saves the file to the person file that is currently open. If there is no
-     * open file, the "save as" dialog is shown.
-     */
     public void handleSave() {
         File personFile = circuitMaker.getComponentFilePath();
         if (personFile != null) {
@@ -89,9 +76,6 @@ public class ProjectController {
         }
     }
  
-    /**
-     * Opens a FileChooser to let the user select a file to save to.
-     */
     public void handleSaveAs() {
         FileChooser fileChooser = new FileChooser();
  

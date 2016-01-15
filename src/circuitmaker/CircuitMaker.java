@@ -88,8 +88,6 @@ public class CircuitMaker extends Application {
         grid.setStyle("-fx-background-color: transparent;");
         stack.getChildren().addAll(wirePane, grid);
         
-//        grid.setGridLinesVisible(true);
-        
         HBox title = new HBox();
         title.setPrefSize(800, 100);
         title.setStyle("-fx-background-color: #99ccff;");
@@ -254,6 +252,7 @@ public class CircuitMaker extends Application {
         primaryStage.setResizable(false);
         primaryStage.sizeToScene();
         primaryStage.show();
+        pc.handleNew(grid, gc);
     }
     
     boolean imageEqual(Image image1, Image image2) {
@@ -282,15 +281,12 @@ public class CircuitMaker extends Application {
                 }
                 else {
                     ImageView switchImage = (ImageView)currentImage.getChildren().get(0);
-                    System.out.println("mouse clicked");
                     if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
-                        System.out.println("closed");
                         switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")));
                         currentImage.getChildren().clear();
                         currentImage.getChildren().add(switchImage);
                     }
                     else if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
-                        System.out.println("open");
                         switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
                         currentImage.getChildren().clear();
                         currentImage.getChildren().add(switchImage);
@@ -308,7 +304,6 @@ public class CircuitMaker extends Application {
             gc.setStroke(Color.BLACK);
             gc.setLineWidth(2);
             gc.strokeLine(x1, y1, x2, y2);
-            System.out.println("1");
         }
         
         if (y2 >= (y1 - 20.0) && y2 <= (y1 + 20.0)){
@@ -329,7 +324,6 @@ public class CircuitMaker extends Application {
             gc.setLineWidth(2);
             gc.strokeLine(x1, y1, x2, y1);
             gc.strokeLine(x2, y1, x2, y2);
-            System.out.println("4");
         }
 
         if (x2 < (x1 - 20.0) && y2 > (y1 + 20.0)){
@@ -337,7 +331,6 @@ public class CircuitMaker extends Application {
             gc.setLineWidth(2);
             gc.strokeLine(x1, y1, x1, y2);
             gc.strokeLine(x1, y2, x2, y2);
-            System.out.println("5");
         }
 
         if (x2 < (x1 - 20.0) && y2 < (y1 - 20.0)){
@@ -345,7 +338,6 @@ public class CircuitMaker extends Application {
             gc.setLineWidth(2);
             gc.strokeLine(x1, y1, x2, y1);
             gc.strokeLine(x2, y1, x2, y2);
-            System.out.println("6");
         }
     }
     
@@ -388,7 +380,6 @@ public class CircuitMaker extends Application {
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
            @Override
             public void handle(MouseEvent event) {
-                System.out.println("drag detected");
                 Dragboard db = source.startDragAndDrop(TransferMode.COPY);
                 
                 ClipboardContent content = new ClipboardContent();
@@ -403,7 +394,6 @@ public class CircuitMaker extends Application {
         source.setOnMouseEntered(new EventHandler <MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
-                System.out.println("mouse entered");
                 source.setCursor(Cursor.HAND);
             }
         });
@@ -414,7 +404,6 @@ public class CircuitMaker extends Application {
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
            @Override
            public void handle(MouseEvent event) {
-               System.out.println("drag detected");
                Dragboard db = source.startDragAndDrop(TransferMode.MOVE);
                 
                ClipboardContent content = new ClipboardContent();
@@ -430,7 +419,6 @@ public class CircuitMaker extends Application {
         source.setOnMouseEntered(new EventHandler <MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
-                System.out.println("mouse entered");
                 source.setCursor(Cursor.HAND);
             }
         });
@@ -521,31 +509,24 @@ public class CircuitMaker extends Application {
                 if (!hb.getChildren().isEmpty()) {
                     ImageView imv  = (ImageView)hb.getChildren().get(0);
                     if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
-                        System.out.println("1");
                         componentData.add(new Component("ClosedSwitch", i, j));
                     }
                     else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
-                        System.out.println("2");
                         componentData.add(new Component("OpenSwitch", i, j));
                     }
                     else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Cell.png")))) {
-                        System.out.println("3");
                         componentData.add(new Component("Cell", i, j));
                     }
                     else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/LED.png")))) {
-                        System.out.println("4");
                         componentData.add(new Component("LED", i, j));
                     }
                     else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Resistor.png")))) {
-                        System.out.println("5");
                         componentData.add(new Component("Resistor", i, j));
                     }
                     else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Ammeter.png")))) {
-                        System.out.println("6");
                         componentData.add(new Component("Ammeter", i, j));
                     }
                     else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Voltmeter.png")))) {
-                        System.out.println("7");
                         componentData.add(new Component("Voltmeter", i, j));
                     }
                 }
@@ -559,7 +540,6 @@ public class CircuitMaker extends Application {
             String type = component.getComponent();
             int XCoor = component.getXCoor();
             int YCoor = component.getYCoor();
-            System.out.println(type);
             if (!"wire".equals(type)) {
                 HBox hb = (HBox)getNodeFromGridPane(grid, XCoor, YCoor);
                 Image im = new Image(CircuitMaker.class.getResourceAsStream("rsrc/" + type +".png"));
@@ -573,19 +553,16 @@ public class CircuitMaker extends Application {
             }
             else {
                 wireCount++;
-                System.out.println(wireCount);
                 if (wireCount == 1) {
                     x1 = (double)XCoor;
                     y1 = (double)YCoor;
                 }
                 else if (wireCount == 2) {
-                    System.out.println("draw line");
                     x2 = (double)XCoor;
                     y2 = (double)YCoor;
                     drawWire();
                     
                     wireCount = 0;
-                    System.out.println("drawn line");
                 }
             }  
         }
@@ -627,9 +604,9 @@ public class CircuitMaker extends Application {
             componentData.clear();
             componentData.addAll(wrapper.getComponents());
             
-            for (Component component: componentData) {
-                System.out.println(component.getComponent() + " " + component.getXCoor() + " " + component.getYCoor());
-            }
+//            for (Component component: componentData) {
+//                System.out.println(component.getComponent() + " " + component.getXCoor() + " " + component.getYCoor());
+//            }
             
             loadComponents();
             
