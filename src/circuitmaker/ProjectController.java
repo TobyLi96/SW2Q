@@ -40,13 +40,16 @@ public class ProjectController {
             for (int j = 0; j < 10; j++) {
                 HBox hb = (HBox)getNodeFromGridPane(grid, i, j);
                 hb.getChildren().clear();
+                hb.setOnDragDetected(null);
+                hb.setOnMouseEntered(null);
+                hb.setOnMouseClicked(null);
             }
         }
         circuitMaker.getComponentData().clear();
         circuitMaker.setComponentFilePath(null);
     }
     
-    public void handleOpen() {
+    public void handleOpen(GridPane grid, GraphicsContext gc) {
         FileChooser fileChooser = new FileChooser();
  
         // Set extension filter
@@ -58,6 +61,17 @@ public class ProjectController {
         File file = fileChooser.showOpenDialog(circuitMaker.getPrimaryStage());
  
         if (file != null) {
+            gc.clearRect(0, 0, 400, 400);
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    HBox hb = (HBox)getNodeFromGridPane(grid, i, j);
+                    hb.getChildren().clear();
+                    hb.setOnDragDetected(null);
+                    hb.setOnMouseEntered(null);
+                    hb.setOnMouseClicked(null);
+                }
+            }
+            circuitMaker.getComponentData().clear();
             circuitMaker.loadComponentDataFromFile(file);
         }
     }

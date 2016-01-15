@@ -57,6 +57,7 @@ public class CircuitMaker extends Application {
     double x1 = 0,x2 = 0,y1 = 0,y2 = 0;
     GraphicsContext gc;
     private ObservableList<Component> componentData = FXCollections.observableArrayList();
+    private ObservableList<Component> wireData = FXCollections.observableArrayList();
     Stage primaryStage;
     GridPane grid;
     
@@ -149,7 +150,7 @@ public class CircuitMaker extends Application {
             public void handle(ActionEvent event) {
                 stack.getChildren().clear();
                 stack.getChildren().addAll(grid, wirePane);
-                drawLine(wirePane, stack);
+                setUpDrawWire(wirePane, stack);
                 event.consume();
             }
         }); 
@@ -162,6 +163,7 @@ public class CircuitMaker extends Application {
             @Override
             public void handle(ActionEvent event) {
                 gc.clearRect(0, 0, 400, 400);
+                wireData.clear();
             }
         }); 
         components.getChildren().add(deleteWireBtn);
@@ -191,8 +193,7 @@ public class CircuitMaker extends Application {
         openProjBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                pc.handleNew(grid, gc);
-                pc.handleOpen();
+                pc.handleOpen(grid, gc);
             }
         }); 
         projects.getChildren().add(openProjBtn);
@@ -255,12 +256,29 @@ public class CircuitMaker extends Application {
         primaryStage.show();
     }
     
+    boolean imageEqual(Image image1, Image image2) {
+        PixelReader pr1 = image1.getPixelReader();
+        PixelReader pr2 = image2.getPixelReader();
+        boolean isEqual = true;
+        for (int i = 0; i < 40; i++) {
+            for (int j = 0; j < 40; j++) {
+                if (pr1.getArgb(i, j) != pr2.getArgb(i, j)) {
+                    isEqual = false;
+                }
+            }
+        }
+        return isEqual;
+    }
+    
     void setupComponent(HBox currentImage){
         currentImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getButton() == MouseButton.SECONDARY) {
                     currentImage.getChildren().clear();
+                    currentImage.setOnDragDetected(null);
+                    currentImage.setOnMouseEntered(null);
+                    currentImage.setOnMouseClicked(null);
                 }
                 else {
                     ImageView switchImage = (ImageView)currentImage.getChildren().get(0);
@@ -282,39 +300,56 @@ public class CircuitMaker extends Application {
        });
     }
     
-    boolean imageEqual(Image image1, Image image2) {
-        PixelReader pr1 = image1.getPixelReader();
-        PixelReader pr2 = image2.getPixelReader();
-        boolean isEqual = true;
-        for (int i = 0; i < 40; i++) {
-            for (int j = 0; j < 40; j++) {
-                if (pr1.getArgb(i, j) != pr2.getArgb(i, j)) {
-                    isEqual = false;
-                }
-            }
+    void drawWire() {
+        wireData.add(new Component("wire", (int)x1, (int)y1));
+        wireData.add(new Component("wire", (int)x2, (int)y2));
+        
+        if (x2 >= (x1 - 20.0) && x2 <= (x1 + 20.0)){
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(x1, y1, x2, y2);
+            System.out.println("1");
         }
-        return isEqual;
+        
+        if (y2 >= (y1 - 20.0) && y2 <= (y1 + 20.0)){
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(x1, y1, x2, y2);
+        }
+                
+        if (x2 > (x1 + 20.0) && y2 < (y1 - 20.0)){
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(x1, y1, x1, y2);
+            gc.strokeLine(x1, y2, x2, y2);
+        }
+
+        if (x2 > (x1 + 20.0) && y2 > (y1 + 20.0)){
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(x1, y1, x2, y1);
+            gc.strokeLine(x2, y1, x2, y2);
+            System.out.println("4");
+        }
+
+        if (x2 < (x1 - 20.0) && y2 > (y1 + 20.0)){
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(x1, y1, x1, y2);
+            gc.strokeLine(x1, y2, x2, y2);
+            System.out.println("5");
+        }
+
+        if (x2 < (x1 - 20.0) && y2 < (y1 - 20.0)){
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeLine(x1, y1, x2, y1);
+            gc.strokeLine(x2, y1, x2, y2);
+            System.out.println("6");
+        }
     }
     
-    void setupSwitch(ImageView switchImage) {
-        switchImage.setOnMouseClicked(new EventHandler <MouseEvent>() {
-            public void handle(MouseEvent event) {
-                System.out.println("mouse clicked");
-                if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
-                    System.out.println("closed");
-                    switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")));
-                }
-                else if (imageEqual(switchImage.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
-                    System.out.println("open");
-                    switchImage.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
-                }
-                event.consume();
-             } 
-        });
-    }
-    
-    void drawLine(Canvas wirePane, StackPane stack) {
-        Line line = new Line();
+    void setUpDrawWire(Canvas wirePane, StackPane stack) {
         wirePane.setOnMousePressed(new EventHandler<MouseEvent>() {
             public void handle(final MouseEvent event) {
                 x1 = event.getX();
@@ -335,49 +370,8 @@ public class CircuitMaker extends Application {
                 y2 = ((int)y2 / 40) * 40 + 20;
                 System.out.println("the second postition" + x2 + y2); 
                 
-                if(x2 >= (x1 - 20.0) && x2 <= (x1 + 20.0)){
-                    gc.setStroke(Color.BLACK);
-                    gc.setLineWidth(2);
-                    gc.strokeLine(x1, y1, x2, y2);
-                    System.out.println("1");
-                }
+                drawWire();
                 
-                if(y2 >= (y1 - 20.0) && y2 <= (y1 + 20.0)){
-                    gc.setStroke(Color.BLACK);
-                    gc.setLineWidth(2);
-                    gc.strokeLine(x1, y1, x2, y2);
-                }
-                
-                if(x2 > (x1 + 20.0) && y2 < (y1 - 20.0)){
-                    gc.setStroke(Color.BLACK);
-                    gc.setLineWidth(2);
-                    gc.strokeLine(x1, y1, x1, y2);
-                    gc.strokeLine(x1, y2, x2, y2);
-                }
-                
-                 if(x2 > (x1 + 20.0) && y2 > (y1 + 20.0)){
-                    gc.setStroke(Color.BLACK);
-                    gc.setLineWidth(2);
-                    gc.strokeLine(x1, y1, x2, y1);
-                    gc.strokeLine(x2, y1, x2, y2);
-                    System.out.println("4");
-                }
-                 
-                 if(x2 < (x1 - 20.0) && y2 > (y1 + 20.0)){
-                    gc.setStroke(Color.BLACK);
-                    gc.setLineWidth(2);
-                    gc.strokeLine(x1, y1, x1, y2);
-                    gc.strokeLine(x1, y2, x2, y2);
-                    System.out.println("5");
-                }
-                 
-                 if(x2 < (x1 - 20.0) && y2 < (y1 - 20.0)){
-                    gc.setStroke(Color.BLACK);
-                    gc.setLineWidth(2);
-                    gc.strokeLine(x1, y1, x2, y1);
-                    gc.strokeLine(x2, y1, x2, y2);
-                    System.out.println("6");
-                }
                 stack.getChildren().clear();
                 stack.getChildren().addAll(wirePane, grid);
                 wirePane.setOnMousePressed(null);
@@ -394,6 +388,7 @@ public class CircuitMaker extends Application {
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
            @Override
             public void handle(MouseEvent event) {
+                System.out.println("drag detected");
                 Dragboard db = source.startDragAndDrop(TransferMode.COPY);
                 
                 ClipboardContent content = new ClipboardContent();
@@ -408,6 +403,7 @@ public class CircuitMaker extends Application {
         source.setOnMouseEntered(new EventHandler <MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
+                System.out.println("mouse entered");
                 source.setCursor(Cursor.HAND);
             }
         });
@@ -418,6 +414,7 @@ public class CircuitMaker extends Application {
         source.setOnDragDetected(new EventHandler <MouseEvent>() {
            @Override
            public void handle(MouseEvent event) {
+               System.out.println("drag detected");
                Dragboard db = source.startDragAndDrop(TransferMode.MOVE);
                 
                ClipboardContent content = new ClipboardContent();
@@ -433,6 +430,7 @@ public class CircuitMaker extends Application {
         source.setOnMouseEntered(new EventHandler <MouseEvent>() {
             @Override
             public void handle(MouseEvent e) {
+                System.out.println("mouse entered");
                 source.setCursor(Cursor.HAND);
             }
         });
@@ -502,7 +500,6 @@ public class CircuitMaker extends Application {
         });
     }
     
-    
     private Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
         for (Node node : gridPane.getChildren()) {
             if (GridPane.getColumnIndex(node) == col && GridPane.getRowIndex(node) == row) {
@@ -513,6 +510,11 @@ public class CircuitMaker extends Application {
     }
     
     private void storeComponents() {
+        componentData.clear();
+        for (Component component: wireData) {
+            componentData.add(component);
+        }
+        wireData.clear();
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 HBox hb = (HBox)getNodeFromGridPane(grid, i, j);
@@ -552,58 +554,40 @@ public class CircuitMaker extends Application {
     }
     
     private void loadComponents() {
+        int wireCount = 0;
         for (Component component: componentData) {
             String type = component.getComponent();
             int XCoor = component.getXCoor();
-            int YCoor = component.getXCoor();
-            HBox hb = (HBox)getNodeFromGridPane(grid, XCoor, YCoor);
-            hb.getChildren().clear();
-            Image im = new Image(CircuitMaker.class.getResourceAsStream("rsrc/" + type +".png"));
-            ImageView imv = new ImageView();
-            imv.setImage(im);
-            imv.setFitHeight(40);
-            imv.setFitWidth(40);
-            hb.getChildren().add(imv);
-            setupGestureSource(hb);
-            setupComponent(hb);
-            
-        }
-        
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                HBox hb = (HBox)getNodeFromGridPane(grid, i, j);
-                if (!hb.getChildren().isEmpty()) {
-                    ImageView imv  = (ImageView)hb.getChildren().get(0);
-                    if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
-                        System.out.println("1");
-                        componentData.add(new Component("ClosedSwitch", i, j));
-                    }
-                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
-                        System.out.println("2");
-                        componentData.add(new Component("OpenSwitch", i, j));
-                    }
-                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Cell.png")))) {
-                        System.out.println("3");
-                        componentData.add(new Component("Cell", i, j));
-                    }
-                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/LED.png")))) {
-                        System.out.println("4");
-                        componentData.add(new Component("LED", i, j));
-                    }
-                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Resistor.png")))) {
-                        System.out.println("5");
-                        componentData.add(new Component("Resistor", i, j));
-                    }
-                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Ammeter.png")))) {
-                        System.out.println("6");
-                        componentData.add(new Component("Ammeter", i, j));
-                    }
-                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Voltmeter.png")))) {
-                        System.out.println("7");
-                        componentData.add(new Component("Voltmeter", i, j));
-                    }
-                }
+            int YCoor = component.getYCoor();
+            System.out.println(type);
+            if (!"wire".equals(type)) {
+                HBox hb = (HBox)getNodeFromGridPane(grid, XCoor, YCoor);
+                Image im = new Image(CircuitMaker.class.getResourceAsStream("rsrc/" + type +".png"));
+                ImageView imv = new ImageView();
+                imv.setImage(im);
+                imv.setFitHeight(40);
+                imv.setFitWidth(40);
+                hb.getChildren().add(imv);
+                setupGestureSource(hb);
+                setupComponent(hb);
             }
+            else {
+                wireCount++;
+                System.out.println(wireCount);
+                if (wireCount == 1) {
+                    x1 = (double)XCoor;
+                    y1 = (double)YCoor;
+                }
+                else if (wireCount == 2) {
+                    System.out.println("draw line");
+                    x2 = (double)XCoor;
+                    y2 = (double)YCoor;
+                    drawWire();
+                    
+                    wireCount = 0;
+                    System.out.println("drawn line");
+                }
+            }  
         }
     }
     
@@ -618,7 +602,7 @@ public class CircuitMaker extends Application {
             prefs.remove("filePath");
  
             // Update the stage title.
-            primaryStage.setTitle("circuitMaker");
+            primaryStage.setTitle("Circuit Maker");
         }
     }
     
@@ -643,6 +627,10 @@ public class CircuitMaker extends Application {
             componentData.clear();
             componentData.addAll(wrapper.getComponents());
             
+            for (Component component: componentData) {
+                System.out.println(component.getComponent() + " " + component.getXCoor() + " " + component.getYCoor());
+            }
+            
             loadComponents();
             
             // Save the file path to the registry.
@@ -665,9 +653,6 @@ public class CircuitMaker extends Application {
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             
             storeComponents();
-            for (Component component: componentData) {
-                System.out.println(component.getComponent() + " " + component.getXCoor() + " " + component.getYCoor());
-            }
             
             // Wrapping our person data.
             ComponentListWrapper wrapper = new ComponentListWrapper();
