@@ -191,6 +191,7 @@ public class CircuitMaker extends Application {
         openProjBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                pc.handleNew(grid, gc);
                 pc.handleOpen();
             }
         }); 
@@ -550,6 +551,62 @@ public class CircuitMaker extends Application {
         }
     }
     
+    private void loadComponents() {
+        for (Component component: componentData) {
+            String type = component.getComponent();
+            int XCoor = component.getXCoor();
+            int YCoor = component.getXCoor();
+            HBox hb = (HBox)getNodeFromGridPane(grid, XCoor, YCoor);
+            hb.getChildren().clear();
+            Image im = new Image(CircuitMaker.class.getResourceAsStream("rsrc/" + type +".png"));
+            ImageView imv = new ImageView();
+            imv.setImage(im);
+            imv.setFitHeight(40);
+            imv.setFitWidth(40);
+            hb.getChildren().add(imv);
+            setupGestureSource(hb);
+            setupComponent(hb);
+            
+        }
+        
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                HBox hb = (HBox)getNodeFromGridPane(grid, i, j);
+                if (!hb.getChildren().isEmpty()) {
+                    ImageView imv  = (ImageView)hb.getChildren().get(0);
+                    if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
+                        System.out.println("1");
+                        componentData.add(new Component("ClosedSwitch", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
+                        System.out.println("2");
+                        componentData.add(new Component("OpenSwitch", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Cell.png")))) {
+                        System.out.println("3");
+                        componentData.add(new Component("Cell", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/LED.png")))) {
+                        System.out.println("4");
+                        componentData.add(new Component("LED", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Resistor.png")))) {
+                        System.out.println("5");
+                        componentData.add(new Component("Resistor", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Ammeter.png")))) {
+                        System.out.println("6");
+                        componentData.add(new Component("Ammeter", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Voltmeter.png")))) {
+                        System.out.println("7");
+                        componentData.add(new Component("Voltmeter", i, j));
+                    }
+                }
+            }
+        }
+    }
+    
     public void setComponentFilePath(File file) {
         Preferences prefs = Preferences.userNodeForPackage(CircuitMaker.class);
         if (file != null) {
@@ -585,7 +642,9 @@ public class CircuitMaker extends Application {
  
             componentData.clear();
             componentData.addAll(wrapper.getComponents());
- 
+            
+            loadComponents();
+            
             // Save the file path to the registry.
             setComponentFilePath(file);
  

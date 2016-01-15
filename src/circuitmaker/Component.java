@@ -24,9 +24,9 @@ public class Component {
     /**
      * Default constructor.
      */
-//    public Component() {
-//        this(null);
-//    }
+    public Component() {
+        this(null, 0, 0);
+    }
  
     /**
      * Constructor with some initial data.
