@@ -11,10 +11,13 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * @author Marco Jakob
  */
+ 
+ @XmlRootElement(name = "components")
 public class ComponentListWrapper {
  
     private List<Component> components;
  
+  @XmlElement(name = "components")
     public List<Component> getComponents() {
         return components;
     }
