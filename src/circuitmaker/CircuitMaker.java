@@ -5,7 +5,11 @@
  */
 package circuitmaker;
 
+import java.io.File;
+import java.util.prefs.Preferences;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -13,6 +17,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -40,6 +45,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 /**
  *
  * @author litao_000
@@ -48,19 +56,30 @@ public class CircuitMaker extends Application {
     HBox tempIV = new HBox();
     double x1 = 0,x2 = 0,y1 = 0,y2 = 0;
     GraphicsContext gc;
+    private ObservableList<Component> componentData = FXCollections.observableArrayList();
+    Stage primaryStage;
+    GridPane grid;
+    
+    public ObservableList<Component> getComponentData() {
+        return componentData;
+    }
     
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         primaryStage.setTitle("Circuit Maker");
         
+        ProjectController pc = new ProjectController();
+        pc.setCircuitMaker(this);
+        
         BorderPane root = new BorderPane();
-        Scene scene = new Scene(root, 810, 660);
+        Scene scene = new Scene(root, 810, 560);
         root.setPadding(new Insets(5));
         scene.setFill(Color.WHITE);
         
         StackPane stack = new StackPane();
         stack.setPrefSize(400, 400);
-        GridPane grid = new GridPane();
+        grid = new GridPane();
         Canvas wirePane = new Canvas();
         gc = wirePane.getGraphicsContext2D();
         wirePane.setHeight(400);
@@ -87,13 +106,6 @@ public class CircuitMaker extends Application {
         battery.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/Cell.png")));
         setupGestureSource(battery);
         components.getChildren().add(battery);
-        
-        final ImageView cSwitch = new ImageView();
-        cSwitch.setFitHeight(40);
-        cSwitch.setFitWidth(40); 
-        cSwitch.setImage(new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")));
-        setupGestureSource(cSwitch);
-        components.getChildren().add(cSwitch);
         
         final ImageView oSwitch = new ImageView();
         oSwitch.setFitHeight(40);
@@ -130,36 +142,89 @@ public class CircuitMaker extends Application {
         setupGestureSource(voltmeter);
         components.getChildren().add(voltmeter);
         
-        Button btn = new Button();
-        btn.setText("ADD WIRE");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
+        Button addWireBtn = new Button();
+        addWireBtn.setText("ADD WIRE");
+        addWireBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 stack.getChildren().clear();
                 stack.getChildren().addAll(grid, wirePane);
-                drawLine(wirePane, stack, grid);
+                drawLine(wirePane, stack);
                 event.consume();
             }
         }); 
         
-        components.getChildren().add(btn);
+        components.getChildren().add(addWireBtn);
         
-        VBox data = new VBox();
-        data.setPrefSize(200, 400);
-        data.setStyle("-fx-background-color: #00ff80;");
-        HBox projects = new HBox();
-        projects.setPrefSize(800, 150);
-        projects.setStyle("-fx-background-color: #99ccff;");
-        
-        Button deleteWire = new Button();
-        deleteWire.setText("DELETE WIRE");
-        deleteWire.setOnAction(new EventHandler<ActionEvent>() {
+        Button deleteWireBtn = new Button();
+        deleteWireBtn.setText("DELETE WIRE");
+        deleteWireBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 gc.clearRect(0, 0, 400, 400);
             }
         }); 
-        projects.getChildren().add(deleteWire);
+        components.getChildren().add(deleteWireBtn);
+        
+        VBox data = new VBox();
+        data.setPrefSize(200, 400);
+        data.setStyle("-fx-background-color: #00ff80;");
+        
+        HBox projects = new HBox();
+        projects.setPrefSize(800, 50);
+        projects.setStyle("-fx-background-color: #99ccff;");
+        projects.setSpacing(10);
+        projects.setAlignment(Pos.CENTER);
+        
+        Button newProjBtn = new Button();
+        newProjBtn.setText("New Project");
+        newProjBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                pc.handleNew(grid, gc);
+            }
+        }); 
+        projects.getChildren().add(newProjBtn);
+        
+        Button openProjBtn = new Button();
+        openProjBtn.setText("Open Project");
+        openProjBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                pc.handleOpen();
+            }
+        }); 
+        projects.getChildren().add(openProjBtn);
+        
+        Button saveProjBtn = new Button();
+        saveProjBtn.setText("Save Project");
+        saveProjBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                pc.handleSave();
+            }
+        }); 
+        projects.getChildren().add(saveProjBtn);
+        
+        Button saveasProjBtn = new Button();
+        saveasProjBtn.setText("Save Project As");
+        saveasProjBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                pc.handleSaveAs();
+            }
+        }); 
+        projects.getChildren().add(saveasProjBtn);
+        
+        Button deleteProjBtn = new Button();
+        deleteProjBtn.setText("Delete Project");
+        deleteProjBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                pc.handleNew(grid, gc);
+            }
+        }); 
+        projects.getChildren().add(deleteProjBtn);
         
         Text titleText = new Text("Circuit Maker");
         titleText.setTextOrigin(VPos.TOP);
@@ -247,7 +312,7 @@ public class CircuitMaker extends Application {
         });
     }
     
-    void drawLine(Canvas wirePane, StackPane stack, GridPane grid) {
+    void drawLine(Canvas wirePane, StackPane stack) {
         Line line = new Line();
         wirePane.setOnMousePressed(new EventHandler<MouseEvent>() {
             public void handle(final MouseEvent event) {
@@ -434,6 +499,138 @@ public class CircuitMaker extends Application {
                 event.consume();
             }
         });
+    }
+    
+    
+    private Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
+        for (Node node : gridPane.getChildren()) {
+            if (GridPane.getColumnIndex(node) == col && GridPane.getRowIndex(node) == row) {
+                return node;
+            }
+        }
+        return null;
+    }
+    
+    private void storeComponents() {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                HBox hb = (HBox)getNodeFromGridPane(grid, i, j);
+                if (!hb.getChildren().isEmpty()) {
+                    ImageView imv  = (ImageView)hb.getChildren().get(0);
+                    if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/ClosedSwitch.png")))) {
+                        System.out.println("1");
+                        componentData.add(new Component("ClosedSwitch", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/OpenSwitch.png")))) {
+                        System.out.println("2");
+                        componentData.add(new Component("OpenSwitch", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Cell.png")))) {
+                        System.out.println("3");
+                        componentData.add(new Component("Cell", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/LED.png")))) {
+                        System.out.println("4");
+                        componentData.add(new Component("LED", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Resistor.png")))) {
+                        System.out.println("5");
+                        componentData.add(new Component("Resistor", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Ammeter.png")))) {
+                        System.out.println("6");
+                        componentData.add(new Component("Ammeter", i, j));
+                    }
+                    else if (imageEqual(imv.getImage(), new Image(CircuitMaker.class.getResourceAsStream("rsrc/Voltmeter.png")))) {
+                        System.out.println("7");
+                        componentData.add(new Component("Voltmeter", i, j));
+                    }
+                }
+            }
+        }
+    }
+    
+    public void setComponentFilePath(File file) {
+        Preferences prefs = Preferences.userNodeForPackage(CircuitMaker.class);
+        if (file != null) {
+            prefs.put("filePath", file.getPath());
+ 
+            // Update the stage title.
+            primaryStage.setTitle("CircuitMaker - " + file.getName());
+        } else {
+            prefs.remove("filePath");
+ 
+            // Update the stage title.
+            primaryStage.setTitle("circuitMaker");
+        }
+    }
+    
+    public File getComponentFilePath() {
+        Preferences prefs = Preferences.userNodeForPackage(CircuitMaker.class);
+        String filePath = prefs.get("filePath", null);
+        if (filePath != null) {
+            return new File(filePath);
+        } else {
+            return null;
+        }
+    }
+    
+    public void loadComponentDataFromFile(File file) {
+        try {
+            JAXBContext context = JAXBContext.newInstance(ComponentListWrapper.class);
+            Unmarshaller um = context.createUnmarshaller();
+ 
+            // Reading XML from the file and unmarshalling.
+            ComponentListWrapper wrapper = (ComponentListWrapper) um.unmarshal(file);
+ 
+            componentData.clear();
+            componentData.addAll(wrapper.getComponents());
+ 
+            // Save the file path to the registry.
+            setComponentFilePath(file);
+ 
+        } catch (Exception e) { // catches ANY exception
+//            Alert alert = new Alert(AlertType.ERROR);
+//            alert.setTitle("Error");
+//            alert.setHeaderText("Could not load data");
+//            alert.setContentText("Could not load data from file:\n" + file.getPath());
+//           
+//            alert.showAndWait();
+        }
+    }
+    
+    public void saveComponentDataToFile(File file) {
+        try {
+            JAXBContext context = JAXBContext.newInstance(ComponentListWrapper.class);
+            Marshaller m = context.createMarshaller();
+            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            
+            storeComponents();
+            for (Component component: componentData) {
+                System.out.println(component.getComponent() + " " + component.getXCoor() + " " + component.getYCoor());
+            }
+            
+            // Wrapping our person data.
+            ComponentListWrapper wrapper = new ComponentListWrapper();
+            wrapper.setComponents(componentData);
+
+            // Marshalling and saving XML to the file.
+            m.marshal(wrapper, file);
+
+            // Save the file path to the registry.
+            setComponentFilePath(file);
+        } catch (Exception e) { // catches ANY exception
+//            Alert alert = new Alert(AlertType.ERROR);
+//            alert.setTitle("Error");
+//            alert.setHeaderText("Could not save data");
+//            alert.setContentText("Could not save data to file:\n" + file.getPath());
+//           
+//            alert.showAndWait();
+        }
+    }
+    
+    public Stage getPrimaryStage() {
+        return primaryStage;
     }
     
     /**
