@@ -1,9 +1,7 @@
-
 package circuitmaker.view;
 
-import java.io.File;
-
 import circuitmaker.CircuitMaker;
+import java.io.File;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;

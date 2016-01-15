@@ -1,4 +1,3 @@
-
 package circuitmaker.model;
 
 import java.time.LocalDate;

@@ -5,6 +5,9 @@
  */
 package circuitmaker;
 
+import circuitmaker.view.ProjectController;
+import circuitmaker.model.ComponentListWrapper;
+import circuitmaker.model.Component;
 import java.io.File;
 import java.util.prefs.Preferences;
 import javafx.application.Application;
@@ -48,10 +51,6 @@ import javafx.stage.Stage;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
-import circuitmaker.model.Component;
-import circuitmaker.model.ComponentListWrapper;
-import circuitmaker.view.ProjectController;
 /**
  *
  * @author litao_000
@@ -354,7 +353,7 @@ public class CircuitMaker extends Application {
                 y1 = ((int)y1 / 40) * 40 + 20;
                 
                 //y1 = ((Ellipse) event.getTarget()).getCenterY();
-                System.out.println("The starting point of the wire is " + x1 + " and "+ y1 + " .");
+                System.out.println("the first postition" + x1 + y1);
                 event.consume();           
             }
         });
@@ -364,7 +363,7 @@ public class CircuitMaker extends Application {
                 y2 = event.getY();
                 x2 = ((int)x2 / 40) * 40 + 20;
                 y2 = ((int)y2 / 40) * 40 + 20;
-                System.out.println("The ending point of the wire is " + x2 + " and " + y2 + " ."); 
+                System.out.println("the second postition" + x2 + y2); 
                 
                 drawWire();
                 
@@ -623,7 +622,7 @@ public class CircuitMaker extends Application {
 //            alert.setHeaderText("Could not load data");
 //            alert.setContentText("Could not load data from file:\n" + file.getPath());
 //           
-//            alert.showAndWait();
+//            alert.showAndWait();20
         }
     }
     
